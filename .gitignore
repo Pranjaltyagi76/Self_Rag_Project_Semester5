@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+*.key
+
+# Vector store / data artifacts
+chroma_db/
+*.index
+data/corpus/*.jsonl
+data/corpus/*.json
+
+# Models / caches
+.cache/
+models/
+*.bin
+*.safetensors
+
+# Eval outputs
+eval/results/
+*.png
+!docs/*.png
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.ipynb_checkpoints/
