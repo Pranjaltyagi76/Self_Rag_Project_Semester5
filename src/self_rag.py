@@ -8,12 +8,14 @@ functions into an adaptive, self-critiquing pipeline:
     3. generate a grounded, cited answer
     4. IsSup + IsUse -> verify support/usefulness, regenerate once if weak
 
-This file is built up step by step; this first version is the skeleton that
-retrieves and generates a grounded answer. All dependencies are injectable so
-the pipeline can be unit tested without an API key or a built index.
+All dependencies (generate, retrieve_fn, and the four reflection functions) are
+injectable, so the pipeline can be unit tested without an API key or a built index.
 
 Public API:
     self_rag_answer(query, k=5) -> (answer, info)
+
+`info` is a uniform dict (see _make_info) describing the reflection decisions:
+retrieved, num_retrieved, passages_used, support, usefulness, regenerated, passages.
 """
 import sys
 from pathlib import Path
@@ -31,6 +33,40 @@ def _answer_without_context(query, generate):
     """Generate an answer using only the model's parametric knowledge."""
     generate = generate or _llm.generate
     return generate(query, system=_PARAMETRIC_SYSTEM, max_tokens=256)
+
+
+def _make_info(
+    query,
+    retrieved,
+    num_retrieved=0,
+    passages_used=0,
+    passages=None,
+    support=None,
+    usefulness=None,
+    regenerated=False,
+):
+    """Build the uniform metadata dict returned from every pipeline path.
+
+    Keys:
+        query          the question asked
+        retrieved      whether retrieval was performed (Retrieve token)
+        num_retrieved  passages fetched before relevance filtering
+        passages_used  passages kept after IsRel filtering and used to answer
+        support        IsSup verdict: "fully" | "partially" | "no" | None
+        usefulness     IsUse rating 1-5, or None
+        regenerated    whether the strict-grounding regeneration ran
+        passages       the passages actually used (for citations / the demo)
+    """
+    return {
+        "query": query,
+        "retrieved": retrieved,
+        "num_retrieved": num_retrieved,
+        "passages_used": passages_used,
+        "support": support,
+        "usefulness": usefulness,
+        "regenerated": regenerated,
+        "passages": passages or [],
+    }
 
 
 def self_rag_answer(
@@ -56,7 +92,7 @@ def self_rag_answer(
     # Step 1 (Retrieve token): skip retrieval when no external knowledge is needed.
     if not needs_retrieval(query, generate=generate):
         answer = _answer_without_context(query, generate)
-        return answer, {"query": query, "retrieved": False}
+        return answer, _make_info(query, retrieved=False)
 
     if retrieve_fn is None:
         # Lazy import so mocked tests don't require chromadb.
@@ -70,7 +106,9 @@ def self_rag_answer(
     # If nothing survived filtering, fall back to parametric knowledge.
     if not relevant:
         answer = _answer_without_context(query, generate)
-        return answer, {"query": query, "retrieved": True, "passages_used": 0}
+        return answer, _make_info(
+            query, retrieved=True, num_retrieved=len(passages)
+        )
 
     answer = generate_with_context(query, relevant, generate=generate)
 
@@ -85,7 +123,16 @@ def self_rag_answer(
         use = usefulness(query, answer, generate=generate)
         regenerated = True
 
-    info = {"query": query, "retrieved": True, "passages_used": len(relevant)}
+    info = _make_info(
+        query,
+        retrieved=True,
+        num_retrieved=len(passages),
+        passages_used=len(relevant),
+        passages=relevant,
+        support=support,
+        usefulness=use,
+        regenerated=regenerated,
+    )
     return answer, info
 
 
