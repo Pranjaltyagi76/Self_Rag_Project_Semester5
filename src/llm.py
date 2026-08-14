@@ -15,6 +15,7 @@ load_dotenv()
 
 DEFAULT_BACKEND = os.getenv("LLM_BACKEND", "groq").lower()
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "phi3:mini")
 
 
 class LLM:
@@ -27,6 +28,10 @@ class LLM:
         if self.backend == "groq":
             self.model = model or GROQ_MODEL
             self._client = self._init_groq()
+        elif self.backend == "ollama":
+            # Offline fallback: a local model served by Ollama. No API key needed.
+            self.model = model or OLLAMA_MODEL
+            self._client = None
         else:
             raise ValueError(f"Unknown LLM backend: {self.backend!r}")
 
@@ -57,6 +62,16 @@ class LLM:
                 max_tokens=max_tokens,
             )
             return resp.choices[0].message.content.strip()
+
+        if self.backend == "ollama":
+            import ollama
+
+            resp = ollama.chat(
+                model=self.model,
+                messages=messages,
+                options={"temperature": temp, "num_predict": max_tokens},
+            )
+            return resp["message"]["content"].strip()
 
         raise ValueError(f"Unknown LLM backend: {self.backend!r}")
 
