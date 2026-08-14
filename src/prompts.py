@@ -68,3 +68,23 @@ Rate how useful this answer is for the question, from 1 to 5
 (5 = directly and completely answers it, 1 = not useful at all).
 Respond with a single digit from 1 to 5.
 Rating:"""
+
+# --- Answer generation with cited sources -----------------------------------
+GEN_SYSTEM = (
+    "You are a careful assistant that answers using the provided numbered "
+    "sources and cites them inline as [n]."
+)
+GEN_PROMPT = """Answer the question using the numbered sources below. Cite every \
+source you rely on inline, like [1] or [2]. Keep the answer concise (1-3 sentences).
+{strictness}
+Sources:
+{sources}
+
+Question: {query}
+Answer:"""
+
+# Inserted into GEN_PROMPT when strict grounding is requested (e.g. on regeneration).
+GEN_STRICTNESS = (
+    "Use ONLY the sources. If they do not contain the answer, reply exactly: "
+    "I don't know.\n"
+)
