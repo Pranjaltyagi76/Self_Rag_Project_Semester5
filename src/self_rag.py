@@ -20,11 +20,35 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import llm as _llm  # noqa: E402
 from generation import generate_with_context  # noqa: E402
 
+# System prompt for answering directly from parametric knowledge (no retrieval).
+_PARAMETRIC_SYSTEM = "Answer the question concisely from your own knowledge."
 
-def self_rag_answer(query, k=5, generate=None, retrieve_fn=None):
-    """Skeleton pipeline: retrieve top-k, then generate a grounded answer."""
+
+def _answer_without_context(query, generate):
+    """Generate an answer using only the model's parametric knowledge."""
+    generate = generate or _llm.generate
+    return generate(query, system=_PARAMETRIC_SYSTEM, max_tokens=256)
+
+
+def self_rag_answer(
+    query,
+    k=5,
+    generate=None,
+    retrieve_fn=None,
+    needs_retrieval=None,
+):
+    """Adaptive pipeline: decide whether to retrieve, then generate an answer."""
+    if needs_retrieval is None:
+        from reflect import needs_retrieval
+
+    # Step 1 (Retrieve token): skip retrieval when no external knowledge is needed.
+    if not needs_retrieval(query, generate=generate):
+        answer = _answer_without_context(query, generate)
+        return answer, {"query": query, "retrieved": False}
+
     if retrieve_fn is None:
         # Lazy import so mocked tests don't require chromadb.
         from retriever import retrieve as retrieve_fn
@@ -32,7 +56,7 @@ def self_rag_answer(query, k=5, generate=None, retrieve_fn=None):
     passages = retrieve_fn(query, k=k)
     answer = generate_with_context(query, passages, generate=generate)
 
-    info = {"query": query}
+    info = {"query": query, "retrieved": True}
     return answer, info
 
 
