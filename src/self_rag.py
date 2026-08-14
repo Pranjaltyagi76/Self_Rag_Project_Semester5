@@ -39,10 +39,13 @@ def self_rag_answer(
     generate=None,
     retrieve_fn=None,
     needs_retrieval=None,
+    is_relevant=None,
 ):
-    """Adaptive pipeline: decide whether to retrieve, then generate an answer."""
+    """Adaptive pipeline: decide whether to retrieve, filter, then generate."""
     if needs_retrieval is None:
         from reflect import needs_retrieval
+    if is_relevant is None:
+        from reflect import is_relevant
 
     # Step 1 (Retrieve token): skip retrieval when no external knowledge is needed.
     if not needs_retrieval(query, generate=generate):
@@ -54,9 +57,18 @@ def self_rag_answer(
         from retriever import retrieve as retrieve_fn
 
     passages = retrieve_fn(query, k=k)
-    answer = generate_with_context(query, passages, generate=generate)
 
-    info = {"query": query, "retrieved": True}
+    # Step 2 (IsRel token): keep only passages judged relevant.
+    relevant = [p for p in passages if is_relevant(query, p, generate=generate)]
+
+    # If nothing survived filtering, fall back to parametric knowledge.
+    if not relevant:
+        answer = _answer_without_context(query, generate)
+        return answer, {"query": query, "retrieved": True, "passages_used": 0}
+
+    answer = generate_with_context(query, relevant, generate=generate)
+
+    info = {"query": query, "retrieved": True, "passages_used": len(relevant)}
     return answer, info
 
 
