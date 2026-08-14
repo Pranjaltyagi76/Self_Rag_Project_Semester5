@@ -40,12 +40,18 @@ def self_rag_answer(
     retrieve_fn=None,
     needs_retrieval=None,
     is_relevant=None,
+    is_supported=None,
+    usefulness=None,
 ):
-    """Adaptive pipeline: decide whether to retrieve, filter, then generate."""
+    """Adaptive pipeline: decide whether to retrieve, filter, generate, verify."""
     if needs_retrieval is None:
         from reflect import needs_retrieval
     if is_relevant is None:
         from reflect import is_relevant
+    if is_supported is None:
+        from reflect import is_supported
+    if usefulness is None:
+        from reflect import usefulness
 
     # Step 1 (Retrieve token): skip retrieval when no external knowledge is needed.
     if not needs_retrieval(query, generate=generate):
@@ -67,6 +73,17 @@ def self_rag_answer(
         return answer, {"query": query, "retrieved": True, "passages_used": 0}
 
     answer = generate_with_context(query, relevant, generate=generate)
+
+    # Step 4 (IsSup + IsUse tokens): verify grounding and usefulness; if the
+    # answer is unsupported or not useful, regenerate once with strict grounding.
+    support = is_supported(query, answer, relevant, generate=generate)
+    use = usefulness(query, answer, generate=generate)
+    regenerated = False
+    if support == "no" or use < 3:
+        answer = generate_with_context(query, relevant, generate=generate, strict=True)
+        support = is_supported(query, answer, relevant, generate=generate)
+        use = usefulness(query, answer, generate=generate)
+        regenerated = True
 
     info = {"query": query, "retrieved": True, "passages_used": len(relevant)}
     return answer, info
