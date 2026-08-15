@@ -1,0 +1,20 @@
+{"id": "s1", "question": "Who wrote the play Hamlet?", "answers": ["William Shakespeare", "Shakespeare"], "needs_retrieval": true}
+{"id": "s2", "question": "In which city is the Eiffel Tower located?", "answers": ["Paris"], "needs_retrieval": true}
+{"id": "s3", "question": "Who developed the theory of relativity?", "answers": ["Albert Einstein", "Einstein"], "needs_retrieval": true}
+{"id": "s4", "question": "Who painted the Mona Lisa?", "answers": ["Leonardo da Vinci", "da Vinci"], "needs_retrieval": true}
+{"id": "s5", "question": "What is the highest mountain above sea level?", "answers": ["Mount Everest", "Everest"], "needs_retrieval": true}
+{"id": "s6", "question": "Who created the Python programming language?", "answers": ["Guido van Rossum"], "needs_retrieval": true}
+{"id": "s7", "question": "Which scientist was the first woman to win a Nobel Prize?", "answers": ["Marie Curie", "Curie"], "needs_retrieval": true}
+{"id": "s8", "question": "Who formulated the laws of motion and universal gravitation?", "answers": ["Isaac Newton", "Newton"], "needs_retrieval": true}
+{"id": "s9", "question": "Who invented the first successful motor-operated airplane?", "answers": ["Wright brothers", "Orville and Wilbur Wright"], "needs_retrieval": true}
+{"id": "s10", "question": "Who was the first president of South Africa after apartheid?", "answers": ["Nelson Mandela", "Mandela"], "needs_retrieval": true}
+{"id": "s11", "question": "What is the capital of Japan?", "answers": ["Tokyo"], "needs_retrieval": true}
+{"id": "s12", "question": "Which river has the largest discharge volume of water in the world?", "answers": ["Amazon", "The Amazon River"], "needs_retrieval": true}
+{"id": "s13", "question": "Who described the structure of DNA in 1953?", "answers": ["Watson and Crick", "James Watson and Francis Crick"], "needs_retrieval": true}
+{"id": "s14", "question": "Which engineer designed the Eiffel Tower?", "answers": ["Gustave Eiffel"], "needs_retrieval": true}
+{"id": "s15", "question": "In which year was the Eiffel Tower completed?", "answers": ["1889"], "needs_retrieval": true}
+{"id": "s16", "question": "What is 15 plus 27?", "answers": ["42"], "needs_retrieval": false}
+{"id": "s17", "question": "If a train leaves at 3pm and travels for 2 hours, what time does it arrive?", "answers": ["5pm", "5 pm", "17:00"], "needs_retrieval": false}
+{"id": "s18", "question": "What is the plural of the word 'child'?", "answers": ["children"], "needs_retrieval": false}
+{"id": "s19", "question": "How many sides does a triangle have?", "answers": ["3", "three"], "needs_retrieval": false}
+{"id": "s20", "question": "What color do you get when you mix blue and yellow?", "answers": ["green"], "needs_retrieval": false}
