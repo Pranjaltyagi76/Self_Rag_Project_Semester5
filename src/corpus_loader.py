@@ -29,6 +29,12 @@ def load_corpus(path=DEFAULT_CORPUS):
                 obj = json.loads(line)
             except json.JSONDecodeError as e:
                 raise ValueError(f"Invalid JSON on line {line_no} of {path}: {e}") from e
+            missing = [key for key in ("id", "text") if key not in obj]
+            if missing:
+                raise ValueError(
+                    f"Line {line_no} of {path} is missing required key(s): "
+                    f"{', '.join(missing)}"
+                )
             passages.append(
                 {
                     "id": str(obj["id"]),
@@ -36,6 +42,9 @@ def load_corpus(path=DEFAULT_CORPUS):
                     "text": obj["text"],
                 }
             )
+
+    if not passages:
+        raise ValueError(f"Corpus file {path} contains no passages.")
     return passages
 
 

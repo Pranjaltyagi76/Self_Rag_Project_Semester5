@@ -34,6 +34,13 @@ def format_sources(passages):
 
 def generate_with_context(query, passages, generate=None, strict=False, max_tokens=256):
     """Generate a concise, cited answer grounded in `passages`."""
+    if not passages:
+        # Without sources the prompt would ask the model to cite an empty list.
+        # Callers that have no passages should answer parametrically instead.
+        raise ValueError(
+            "generate_with_context() needs at least one passage; "
+            "answer without context instead when nothing was retrieved."
+        )
     generate = generate or _llm.generate
     prompt = GEN_PROMPT.format(
         strictness=GEN_STRICTNESS if strict else "",

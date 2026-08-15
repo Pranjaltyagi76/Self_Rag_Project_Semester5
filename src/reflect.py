@@ -99,8 +99,11 @@ def usefulness(query, answer, generate=None):
         system=ISUSE_SYSTEM,
         max_tokens=4,
     )
-    match = re.search(r"[1-5]", out)
-    return int(match.group()) if match else 3
+    # Match a standalone 1-5 only: a bare `[1-5]` search would read "10" or "15"
+    # as a 1, scoring a good answer as the worst possible and forcing a needless
+    # regeneration.
+    match = re.search(r"(?<!\d)([1-5])(?!\d)", out)
+    return int(match.group(1)) if match else 3
 
 
 if __name__ == "__main__":

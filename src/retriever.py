@@ -36,7 +36,18 @@ def _get_collection():
 
 def retrieve(query, k=5):
     """Return the top-k passages most similar to `query`."""
+    if not query or not query.strip():
+        return []
+    if k < 1:
+        raise ValueError(f"k must be at least 1, got {k}")
+
     collection = _get_collection()
+    # Asking for more results than the collection holds is an error in some
+    # Chroma versions, so cap k at the number of indexed passages.
+    k = min(k, collection.count())
+    if k == 0:
+        return []
+
     q_vec = embed_query(query)
     res = collection.query(query_embeddings=[q_vec], n_results=k)
 
