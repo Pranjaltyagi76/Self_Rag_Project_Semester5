@@ -27,9 +27,14 @@ def vanilla_rag_answer(query, k=5, generate=None, retrieve_fn=None):
     passages = retrieve_fn(query, k=k)
     answer = generate_with_context(query, passages, generate=generate)
 
+    # Same metadata schema as self_rag/no_rag so the eval harness and the demo
+    # can read every system's result the same way. Vanilla RAG never filters, so
+    # every retrieved passage is also a used passage.
     info = {
+        "query": query,
         "retrieved": True,
-        "num_passages": len(passages),
+        "num_retrieved": len(passages),
+        "passages_used": len(passages),
         "passages": passages,
     }
     return answer, info

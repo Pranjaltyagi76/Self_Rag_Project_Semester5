@@ -38,6 +38,64 @@ def get_system(name):
     return no_rag_answer
 
 
+def render_reflection(info):
+    """Show the four reflection decisions the pipeline made, in paper order."""
+    st.subheader("Reflection steps")
+
+    retrieved = info.get("retrieved")
+    num_retrieved = info.get("num_retrieved", 0)
+    used = info.get("passages_used", 0)
+
+    # Step 1 - Retrieve: was external knowledge needed at all?
+    if retrieved:
+        st.markdown("**1. Retrieve** -> `yes` - the question needs external facts.")
+    else:
+        st.markdown(
+            "**1. Retrieve** -> `no` - answered from the model's own knowledge, "
+            "no passages fetched."
+        )
+
+    # Step 2 - IsRel: how many retrieved passages survived relevance filtering?
+    if retrieved and num_retrieved:
+        dropped = num_retrieved - used
+        st.markdown(
+            f"**2. IsRel** -> kept **{used}** of **{num_retrieved}** retrieved "
+            f"passages ({dropped} judged irrelevant and dropped)."
+        )
+    elif retrieved:
+        st.markdown("**2. IsRel** -> no passages were retrieved to filter.")
+
+    # Steps 3 and 4 - grounding and usefulness of the generated answer.
+    support = info.get("support")
+    usefulness = info.get("usefulness")
+    if support is not None or usefulness is not None:
+        col_a, col_b = st.columns(2)
+        col_a.metric("IsSup (grounding)", str(support))
+        col_b.metric("IsUse (usefulness)", f"{usefulness}/5")
+
+    if info.get("regenerated"):
+        st.warning(
+            "The first answer was unsupported or unhelpful, so it was regenerated "
+            "once with strict grounding."
+        )
+    elif support is not None:
+        st.success("The first answer passed both critiques - no regeneration needed.")
+
+
+def render_sources(info):
+    """List the passages actually used, numbered to match the answer's citations."""
+    passages = info.get("passages") or []
+    if not passages:
+        return
+    st.subheader("Cited sources")
+    for i, p in enumerate(passages, start=1):
+        title = p.get("title") or "Untitled"
+        score = p.get("score")
+        label = f"[{i}] {title}" + (f"  -  similarity {score:.3f}" if score else "")
+        with st.expander(label):
+            st.write(p.get("text", ""))
+
+
 def run_query(system_name, question, k):
     """Run one question through a system, returning (answer, info, error)."""
     try:
@@ -76,7 +134,8 @@ def main():
         else:
             st.subheader("Answer")
             st.write(answer)
-            st.session_state["last_info"] = info
+            render_reflection(info)
+            render_sources(info)
 
 
 if __name__ == "__main__":

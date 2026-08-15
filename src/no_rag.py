@@ -20,7 +20,13 @@ def no_rag_answer(query, generate=None, **kwargs):
     """Answer without any retrieval. Extra kwargs (e.g. k) are ignored."""
     generate = generate or _llm.generate
     answer = generate(query, system=NO_RAG_SYSTEM, max_tokens=256)
-    info = {"query": query, "retrieved": False, "passages_used": 0, "passages": []}
+    info = {
+        "query": query,
+        "retrieved": False,
+        "num_retrieved": 0,
+        "passages_used": 0,
+        "passages": [],
+    }
     return answer, info
 
 

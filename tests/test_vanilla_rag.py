@@ -48,7 +48,8 @@ def test_returns_answer_and_metadata_for_each_query():
         )
         assert isinstance(answer, str) and answer, "answer must be a non-empty string"
         assert info["retrieved"] is True, "vanilla RAG always retrieves"
-        assert info["num_passages"] == 2, "should use exactly k passages"
+        assert info["num_retrieved"] == 2, "should retrieve exactly k passages"
+        assert info["passages_used"] == 2, "vanilla RAG uses every retrieved passage"
         assert len(info["passages"]) == 2
 
 
@@ -71,7 +72,7 @@ def test_respects_k():
     _, info = vanilla_rag_answer(
         "anything", k=1, generate=_make_mock_generate(record), retrieve_fn=_mock_retrieve
     )
-    assert info["num_passages"] == 1
+    assert info["num_retrieved"] == 1
 
 
 if __name__ == "__main__":
