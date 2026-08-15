@@ -4,10 +4,13 @@ Run from the repo root:
 
     streamlit run app.py
 
-Ask a question and see the answer produced by the selected system. Heavy imports
-(chromadb, groq, sentence-transformers) happen lazily inside the query handler,
-so the page still loads and explains what is missing if setup is incomplete.
+Ask a question and watch the pipeline's reflection decisions: whether it chose to
+retrieve, which passages survived relevance filtering, and how it judged its own
+answer. Heavy imports (chromadb, groq, sentence-transformers) happen lazily
+inside the query handler, so the page still loads and explains what is missing
+if setup is incomplete.
 """
+import os
 import sys
 from pathlib import Path
 
@@ -21,6 +24,20 @@ SYSTEM_LABELS = {
     "vanilla_rag": "Vanilla RAG (always retrieve)",
     "no_rag": "No-RAG (parametric only)",
 }
+
+# Two need lookup, one does not -- so the adaptive Retrieve decision is visible.
+EXAMPLE_QUESTIONS = [
+    "Who wrote the play Hamlet?",
+    "Which engineer designed the Eiffel Tower?",
+    "What is 15 plus 27?",
+]
+
+REFLECTION_TOKENS = [
+    ("Retrieve", "Does this question need external facts?"),
+    ("IsRel", "Is each retrieved passage actually relevant?"),
+    ("IsSup", "Is the answer supported by those passages?"),
+    ("IsUse", "Is the answer useful (rated 1-5)?"),
+]
 
 
 def get_system(name):
@@ -36,6 +53,54 @@ def get_system(name):
     from no_rag import no_rag_answer
 
     return no_rag_answer
+
+
+def run_query(system_name, question, k):
+    """Run one question through a system, returning (answer, info, error)."""
+    try:
+        system_fn = get_system(system_name)
+        answer, info = system_fn(question, k=k)
+        return answer, info, None
+    except Exception as e:
+        return None, None, f"{type(e).__name__}: {e}"
+
+
+def render_sidebar():
+    """Settings, setup status, and a short explainer. Returns (system, k)."""
+    with st.sidebar:
+        st.header("Settings")
+        system_name = st.selectbox(
+            "System",
+            list(SYSTEM_LABELS),
+            format_func=lambda n: SYSTEM_LABELS[n],
+            help="Compare the adaptive pipeline against the two baselines.",
+        )
+        k = st.slider(
+            "Passages to retrieve (k)", 1, 10, 5,
+            help="Ignored by No-RAG, which never retrieves.",
+        )
+
+        st.divider()
+        st.subheader("Setup")
+        backend = os.getenv("LLM_BACKEND", "groq")
+        key_set = bool(os.getenv("GROQ_API_KEY")) and (
+            os.getenv("GROQ_API_KEY") != "your_groq_api_key_here"
+        )
+        index_built = (ROOT / "chroma_db").exists()
+
+        st.caption(f"LLM backend: `{backend}`")
+        if backend == "groq":
+            st.caption(("API key found" if key_set else "GROQ_API_KEY missing in .env"))
+        st.caption(
+            "Index built" if index_built else "Index missing - run `python data/build_index.py`"
+        )
+
+        st.divider()
+        st.subheader("Reflection tokens")
+        for token, meaning in REFLECTION_TOKENS:
+            st.caption(f"**{token}** - {meaning}")
+
+    return system_name, k
 
 
 def render_reflection(info):
@@ -96,33 +161,34 @@ def render_sources(info):
             st.write(p.get("text", ""))
 
 
-def run_query(system_name, question, k):
-    """Run one question through a system, returning (answer, info, error)."""
-    try:
-        system_fn = get_system(system_name)
-        answer, info = system_fn(question, k=k)
-        return answer, info, None
-    except Exception as e:
-        return None, None, f"{type(e).__name__}: {e}"
-
-
 def main():
-    st.set_page_config(page_title="Self-RAG Demo", page_icon="*", layout="centered")
+    st.set_page_config(
+        page_title="Self-RAG Demo",
+        page_icon="*",
+        layout="centered",
+        # Keep the controls and setup status visible when demoing.
+        initial_sidebar_state="expanded",
+    )
+    system_name, k = render_sidebar()
+
     st.title("Self-RAG Demo")
     st.caption(
         "Self-Reflective Retrieval-Augmented Generation - Asai et al., ICLR 2024"
     )
 
-    system_name = st.selectbox(
-        "System",
-        list(SYSTEM_LABELS),
-        format_func=lambda n: SYSTEM_LABELS[n],
-    )
-    k = st.slider("Passages to retrieve (k)", 1, 10, 5)
-    question = st.text_input("Question", placeholder="Who wrote the play Hamlet?")
+    # Example questions fill the input box via session state.
+    st.write("Try an example:")
+    for col, example in zip(st.columns(len(EXAMPLE_QUESTIONS)), EXAMPLE_QUESTIONS):
+        if col.button(example, use_container_width=True):
+            st.session_state["question"] = example
 
-    if st.button("Ask", type="primary") and question.strip():
-        with st.spinner("Thinking..."):
+    question = st.text_input(
+        "Question", key="question", placeholder="Ask anything about the indexed corpus..."
+    )
+    asked = st.button("Ask", type="primary")
+
+    if asked and question.strip():
+        with st.spinner(f"Running {SYSTEM_LABELS[system_name]}..."):
             answer, info, error = run_query(system_name, question.strip(), k)
 
         if error:
@@ -136,6 +202,8 @@ def main():
             st.write(answer)
             render_reflection(info)
             render_sources(info)
+    elif asked:
+        st.warning("Enter a question first.")
 
 
 if __name__ == "__main__":

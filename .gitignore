@@ -29,9 +29,10 @@ eval/results/
 *.png
 !docs/*.png
 
-# OS / editor
+# OS / editor / local tooling
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+.claude/
 *.ipynb_checkpoints/
