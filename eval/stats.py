@@ -31,9 +31,18 @@ def _mean(values):
 
 
 def _retrieval_agreement(records):
-    """Precision/recall/F1 of the Retrieve decision against human labels."""
+    """Precision/recall/F1 of the Retrieve decision against human labels.
+
+    Only meaningful for a system that actually decides. A fixed policy (never
+    retrieve, or always retrieve) has nothing to agree or disagree about, so we
+    return None rather than reporting a degenerate 0.0 precision.
+    """
     labelled = [r for r in records if r.get("needs_retrieval_label") is not None]
     if not labelled:
+        return None
+
+    decisions = {bool(r.get("retrieved")) for r in labelled}
+    if len(decisions) < 2:
         return None
 
     tp = sum(1 for r in labelled if r["retrieved"] and r["needs_retrieval_label"])
