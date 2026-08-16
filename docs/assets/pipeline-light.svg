@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 330" width="1040" height="330" role="img" aria-label="Self-RAG pipeline: a Retrieve gate can skip retrieval entirely, an IsRel gate drops irrelevant passages, and an IsSup/IsUse gate can send a weak answer back for one strict regeneration.">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#656d76"/></marker>
+<marker id="arrowAccent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0e8f6f"/></marker>
+<marker id="arrowWarn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c4551f"/></marker>
+</defs>
+<rect width="1040" height="330" fill="#ffffff"/>
+<g font-family="ui-sans-serif,-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+<rect x="16" y="56" width="96" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
+<text x="64" y="88" text-anchor="middle" font-size="13" font-weight="600" fill="#1f2328">Query</text>
+<rect x="140" y="56" width="120" height="56" rx="8" fill="#e6f7f1" stroke="#0e8f6f" stroke-width="2"/>
+<text x="200" y="82" text-anchor="middle" font-size="13" font-weight="600" fill="#08543f">Retrieve?</text>
+<text x="200" y="98" text-anchor="middle" font-size="10" fill="#656d76">need facts?</text>
+<rect x="288" y="56" width="126" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
+<text x="351" y="82" text-anchor="middle" font-size="13" font-weight="600" fill="#1f2328">Retrieve top-k</text>
+<text x="351" y="98" text-anchor="middle" font-size="10" fill="#656d76">ChromaDB</text>
+<rect x="442" y="56" width="112" height="56" rx="8" fill="#e6f7f1" stroke="#0e8f6f" stroke-width="2"/>
+<text x="498" y="82" text-anchor="middle" font-size="13" font-weight="600" fill="#08543f">IsRel</text>
+<text x="498" y="98" text-anchor="middle" font-size="10" fill="#656d76">drop noise</text>
+<rect x="582" y="56" width="136" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
+<text x="650" y="82" text-anchor="middle" font-size="13" font-weight="600" fill="#1f2328">Generate</text>
+<text x="650" y="98" text-anchor="middle" font-size="10" fill="#656d76">cited draft</text>
+<rect x="746" y="56" width="136" height="56" rx="8" fill="#e6f7f1" stroke="#0e8f6f" stroke-width="2"/>
+<text x="814" y="82" text-anchor="middle" font-size="13" font-weight="600" fill="#08543f">IsSup + IsUse</text>
+<text x="814" y="98" text-anchor="middle" font-size="10" fill="#656d76">self-critique</text>
+<rect x="910" y="56" width="110" height="56" rx="8" fill="#e6f7f1" stroke="#0e8f6f" stroke-width="1.5"/>
+<text x="965" y="88" text-anchor="middle" font-size="13" font-weight="600" fill="#08543f">Answer</text>
+<line x1="115" y1="84" x2="135" y2="84" stroke="#656d76" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="263" y1="84" x2="283" y2="84" stroke="#656d76" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="417" y1="84" x2="437" y2="84" stroke="#656d76" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="557" y1="84" x2="577" y2="84" stroke="#656d76" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="721" y1="84" x2="741" y2="84" stroke="#656d76" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="885" y1="84" x2="905" y2="84" stroke="#656d76" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="274" y="72" text-anchor="middle" font-size="10" fill="#08543f">yes</text>
+<text x="896" y="72" text-anchor="middle" font-size="10" fill="#08543f">ok</text>
+<path d="M814,112 V162 H650 V117" fill="none" stroke="#0e8f6f" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrowAccent)"/>
+<text x="732" y="178" text-anchor="middle" font-size="10.5" fill="#08543f">weak answer &#8594; regenerate once, strict grounding</text>
+<path d="M200,112 V276 H241" fill="none" stroke="#c4551f" stroke-width="1.6" marker-end="url(#arrowWarn)"/>
+<text x="208" y="134" font-size="10.5" fill="#8a3a13">no</text>
+<rect x="246" y="250" width="300" height="52" rx="8" fill="#fdf1ea" stroke="#c4551f" stroke-width="1.5"/>
+<text x="396" y="274" text-anchor="middle" font-size="12.5" font-weight="600" fill="#8a3a13">Answer from parametric knowledge</text>
+<text x="396" y="290" text-anchor="middle" font-size="10" fill="#656d76">no passages used</text>
+<path d="M498,112 V245" fill="none" stroke="#c4551f" stroke-width="1.6" marker-end="url(#arrowWarn)"/>
+<text x="506" y="172" font-size="10.5" fill="#8a3a13">none relevant</text>
+<path d="M546,276 H965 V117" fill="none" stroke="#c4551f" stroke-width="1.6" marker-end="url(#arrowWarn)"/>
+</g></svg>

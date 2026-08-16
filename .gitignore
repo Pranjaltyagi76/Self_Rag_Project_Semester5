@@ -27,7 +27,11 @@ models/
 # Eval outputs
 eval/results/
 *.png
+# ...but keep documentation images: generated figures and README assets
 !docs/*.png
+!docs/assets/*.png
+!docs/assets/*.jpg
+!docs/assets/*.gif
 
 # OS / editor / local tooling
 .DS_Store
